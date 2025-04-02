@@ -1,0 +1,100 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String
+  password        String    // Hashed password
+  userType        UserType
+  quantumId       String    @unique
+  profileComplete Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  profile         Profile?
+  medicalRecords  MedicalRecord[]
+  appointments    Appointment[]
+}
+
+model Profile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id])
+  bloodType       String?
+  dateOfBirth     DateTime?
+  gender          String?
+  phoneNumber     String?
+  emergencyContact String?
+  allergies       String?
+  address         Address?
+  specialization  String?   // For doctors/providers
+  license         String?   // For doctors/providers
+  organization    String?   // For providers/partners
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  profileId   String   @unique
+  profile     Profile  @relation(fields: [profileId], references: [id])
+  street      String
+  city        String
+  state       String
+  country     String
+  postalCode  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MedicalRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        String
+  description String
+  date        DateTime
+  provider    String
+  attachments String?  // JSON array of file URLs
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Appointment {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  providerId  String
+  date        DateTime
+  status      AppointmentStatus
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum UserType {
+  PATIENT
+  DOCTOR
+  RECEPTION
+  STAFF
+  HEALTHCARE_PROVIDER
+  TECH_PARTNER
+  SECURITY_PROVIDER
+  RESEARCH_PARTNER
+  INSURANCE_PARTNER
+  TRAVEL_PARTNER
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
